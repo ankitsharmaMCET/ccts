@@ -528,91 +528,117 @@ class FirmAgent(Agent):
     def optimize_production_decision(self) -> float:
         """Optimize production level with scaling costs and cash constraints"""
         try:
-            max_affordable_cash = max(0, self.cash - (self.cash * self.CASH_BUFFER_RATIO))
+            # Cash available after keeping a buffer
+            max_affordable_cash = max(0.0, self.cash * (1 - self.CASH_BUFFER_RATIO))
 
-            # EFFECTIVE INTENSITY CALCULATION:
-            # Abatement reduces baseline intensity by: abated_tonnes / baseline_production
-            # This intensity reduction applies to any production level
-            # Current emissions = current_production * (baseline_intensity - intensity_reduction)
+            # --- define effective_intensity before ANY cost math ---
+            abatement_intensity_reduction = safe_divide(
+                getattr(self, "abated_tonnes_cumulative", 0.0),
+                max(self.baseline_production, 1e-9),
+                0.0,
+            )
+            effective_intensity = max(
+                0.0, self.baseline_emissions_intensity - abatement_intensity_reduction
+            )
 
+            # Per-unit production cost includes the per-unit carbon cost
+            estimated_cost_per_unit = self.variable_production_cost + (
+                effective_intensity * self.expected_price
+            )
 
-            # Per-unit production cost should include full per-unit carbon cost
-            estimated_cost_per_unit = self.variable_production_cost + (effective_intensity * self.expected_price)
+            # Constrain by cash if costs are positive
+            steps_per_year = max(getattr(self, "STEPS_PER_YEAR", 1), 1)
             if estimated_cost_per_unit > 0:
-                constrained_max_production = min(
+                cash_limited = safe_divide(
+                    max_affordable_cash,
+                    estimated_cost_per_unit * steps_per_year,
                     self.max_production,
-                    safe_divide(max_affordable_cash, estimated_cost_per_unit * self.STEPS_PER_YEAR, self.max_production)
                 )
+                constrained_max_production = min(self.max_production, cash_limited)
             else:
                 constrained_max_production = self.max_production
 
-            constrained_max_production = max(self.min_production, constrained_max_production)
+            # Final upper/lower bounds
+            lower = max(self.min_production, 0.0)
+            upper = max(lower, float(constrained_max_production))
 
-            # Production scaling penalty function
-            def scaling_penalty(production):
-                """Quadratic penalty for large production changes"""
-                baseline = self.baseline_production
+            # Quadratic scaling penalty for big production changes
+            def scaling_penalty(production: float) -> float:
+                baseline = max(self.baseline_production, 1e-9)
                 change_ratio = abs(production - baseline) / baseline
-
-                # No penalty for changes < 10%
                 if change_ratio <= 0.1:
-                    return 0
-
-                # Quadratic penalty for larger changes
+                    return 0.0
                 excess_change = change_ratio - 0.1
-                return self.SCALING_PENALTY_FACTOR * (excess_change ** 2) * production * self.revenue_per_unit
+                return (
+                    self.SCALING_PENALTY_FACTOR
+                    * (excess_change ** 2)
+                    * production
+                    * self.revenue_per_unit
+                )
 
-            def profit_function(production_array: np.ndarray) -> float:
-                prod = float(production_array[0])
+            # Objective: minimize negative (profit - stability_penalty)
+            def profit_function(x: np.ndarray) -> float:
+                prod = float(x[0])
 
                 revenue = prod * self.revenue_per_unit
                 variable_costs = prod * self.variable_production_cost
 
-                # Ensure target reflects the current year for this step
-                self.current_target_intensity = self._target_intensity_for_year(self._current_sim_year())
+                # Target intensity for the current sim year
+                self.current_target_intensity = self._target_intensity_for_year(
+                    self._current_sim_year()
+                )
 
-                # Calculate effective intensity for this production level
                 if prod > 0:
-                    abatement_intensity_reduction = safe_divide(
-                        self.abated_tonnes_cumulative, 
-                        self.baseline_production, 
-                        0.0
+                    abate_red = safe_divide(
+                        getattr(self, "abated_tonnes_cumulative", 0.0),
+                        max(self.baseline_production, 1e-9),
+                        0.0,
                     )
-                    effective_intensity = max(0.0, self.baseline_emissions_intensity - abatement_intensity_reduction)
-                    emissions_step = prod * effective_intensity
+                    eff_int = max(0.0, self.baseline_emissions_intensity - abate_red)
+                    emissions_step = prod * eff_int
                 else:
                     emissions_step = 0.0
+
                 allowed_step = self.current_target_intensity * prod
                 excess_emissions = max(0.0, emissions_step - allowed_step)
                 carbon_costs = excess_emissions * self.expected_price
 
-                # Add scaling penalty
                 penalty = scaling_penalty(prod)
-
                 profit = revenue - variable_costs - carbon_costs - penalty
 
-                production_change = abs(prod - self.baseline_production) / self.baseline_production
-                stability_penalty = production_change * self.risk_aversion * revenue * self.PRODUCTION_STABILITY_PENALTY_FACTOR
+                production_change = safe_divide(
+                    abs(prod - self.baseline_production),
+                    max(self.baseline_production, 1e-9),
+                    0.0,
+                )
+                stability_penalty = (
+                    production_change
+                    * self.risk_aversion
+                    * revenue
+                    * self.PRODUCTION_STABILITY_PENALTY_FACTOR
+                )
 
-                return -(profit - stability_penalty)  # Minimize negative profit
+                return -(profit - stability_penalty)
 
-            bounds = [(self.min_production, constrained_max_production)]
-            initial_guess = [min(constrained_max_production, self.current_production)]
+            # Feasible initial guess
+            current = float(getattr(self, "current_production", self.baseline_production))
+            initial = float(np.clip(current, lower, upper))
 
             result = minimize(
                 profit_function,
-                initial_guess,
-                method='SLSQP',
-                bounds=bounds,
-                options={'ftol': 1e-6, 'maxiter': 100}
+                [initial],
+                method="SLSQP",
+                bounds=[(lower, upper)],
+                options={"ftol": 1e-6, "maxiter": 200},
             )
 
-            if result.success:
-                optimized_production = float(result.x[0])
-                return max(self.min_production, min(constrained_max_production, optimized_production))
-            else:
-                logger.warning(f"Production optimization failed for {self.firm_id}, using constrained baseline")
-                return min(constrained_max_production, self.baseline_production)
+            if result.success and np.isfinite(result.x[0]):
+                return float(np.clip(result.x[0], lower, upper))
+
+            logger.warning(
+                f"Production optimization failed for {self.firm_id}, using constrained baseline"
+            )
+            return float(np.clip(self.baseline_production, lower, upper))
 
         except Exception as e:
             logger.error(f"Production optimization error for {self.firm_id}: {e}")
