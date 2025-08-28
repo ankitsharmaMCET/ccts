@@ -8,38 +8,31 @@ version = "0.1.0"
 description = "Carbon Capture Trading Simulation (CCTS) toolkit"
 readme = "README.md"
 requires-python = ">=3.9"
-license = "MIT"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+license = "MIT"                        # ✅ keep the license expression
+authors = [{ name = "Ankit Sharma" }]
 keywords = ["carbon", "market", "simulation", "energy", "electricity"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  # "License :: OSI Approved :: MIT License",  <-- ❌ remove this line
+  "Operating System :: OS Independent"
+]
 
-# === from your requirements.txt ===
 dependencies = [
   "mesa==2.3.2",
   "numpy>=1.20.0",
   "pandas>=1.4.0",
   "scipy>=1.7.0",
   "matplotlib>=3.5.0",
-  "XlsxWriter>=3.0.0",   # pip package name is 'XlsxWriter'
+  "XlsxWriter>=3.0.0",
   "openpyxl"
 ]
-
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent"
-]
-
 
 [project.urls]
 Homepage = "https://github.com/ankitsharmaMCET/ccts"
 Issues   = "https://github.com/ankitsharmaMCET/ccts/issues"
 
-# CLI entry (make sure ccts/run_simulation.py defines main())
 [project.scripts]
 ccts-sim = "ccts.run_simulation:main"
 
-[tool.setuptools]
-packages = ["ccts"]
-
-[tool.setuptools.package-data]
-ccts = []
+[tool.setuptools.packages.find]
+include = ["ccts", "ccts.*"]
