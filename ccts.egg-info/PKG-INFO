@@ -1,0 +1,185 @@
+Metadata-Version: 2.4
+Name: ccts
+Version: 0.1.0
+Summary: Carbon Capture Trading Simulation (CCTS) toolkit
+Home-page: https://github.com/ankitsharmaMCET/ccts
+Author: Ankit Sharma
+Author-email: Your Name <you@example.com>
+Project-URL: Homepage, https://github.com/ankitsharmaMCET/ccts
+Project-URL: Issues, https://github.com/ankitsharmaMCET/ccts/issues
+Keywords: carbon,market,simulation,energy,electricity
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: mesa==2.3.2
+Requires-Dist: numpy>=1.20.0
+Requires-Dist: pandas>=1.4.0
+Requires-Dist: scipy>=1.7.0
+Requires-Dist: matplotlib>=3.5.0
+Requires-Dist: XlsxWriter>=3.0.0
+Requires-Dist: openpyxl
+Dynamic: author
+Dynamic: home-page
+Dynamic: requires-python
+
+# CCTS: Carbon Credit Trading Scheme Simulation
+
+**CCTS** is an agent-based modeling framework designed to simulate India’s Carbon Credit Trading Scheme (CCTS).  
+It provides a comprehensive, extensible Python package to model firm behaviors, carbon market dynamics, compliance, and economic impacts under the Indian regulatory environment.
+
+---
+
+## Features
+
+- **Agent-Based Firm Modeling:** Detailed behavioral models for firms including production optimization, abatement project selection, emissions tracking, and compliance decisions.
+- **Indian Carbon Market Simulation:** Implements a realistic carbon market with trading, price volatility, market stability reserve, credit banking/borrowing, and penalty assessments.
+- **Real-World Constraints:** Incorporates project implementation delays, financing constraints, risk aversion, technology adoption, and diminishing returns on abatement.
+- **Compliance and Penalties:** Supports annual intensity-based compliance checks, vintage credit expiration, penalties with escalation, and market-compatible credit surrendering.
+- **Data Collection and Analysis:** Integrated data collectors for stepwise simulation output and advanced analysis tools for market performance, compliance rates, economic impacts, and sector-level insights.
+- **Configurable Scenarios:** Flexible configuration framework with predefined scenarios, enabling testing of policy reforms, market stress testing, technology push scenarios, and more.
+- **Visualization and Reporting:** Generates time series plots, sector trends, transaction logs, and Excel reports facilitating easy interpretation of simulation outcomes.
+- **Open Source and Extensible:** Built on Mesa, NumPy, Pandas, and other scientific libraries to allow users to customize and extend the simulation logic.
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.8 or newer
+- Recommended: Use a virtual environment for package isolation
+
+### Install via PyPI (upcoming)
+
+pip install ccts
+
+text
+
+### Install directly from GitHub
+
+pip install git+https://github.com/yourusername/ccts.git
+
+text
+
+### Development Installation
+
+Clone the repository and install in editable mode:
+
+git clone https://github.com/yourusername/ccts.git
+cd ccts
+pip install -e .
+
+text
+
+### Install dependencies manually
+
+If you prefer, install dependencies yourself:
+
+pip install -r requirements.txt
+
+text
+
+---
+
+## Usage
+
+### Command-Line Interface (CLI)
+
+Run simulations with customizable input and output parameters:
+
+ccts --firms-csv input/firms.csv --scenario baseline --steps 24 --out-dir output
+
+text
+
+Common CLI options:
+
+- `--firms-csv` : Path to the CSV with firm data
+- `--scenario` : Name of predefined scenario (e.g., baseline, high_ambition)
+- `--steps` : Number of simulation steps (default depends on config)
+- `--out-dir` : Directory to save outputs (default: `output/`)
+
+### Python API
+
+You can import and use the core classes and run customized workflows:
+
+from ccts.model import CCTSModel
+import pandas as pd
+
+Load firm data
+firm_data = pd.read_csv('input/firms.csv')
+
+Prepare configuration and market params (dicts or from config module)
+model_config = {} # Your config dictionary here
+market_params = {}
+
+Initialize model
+model = CCTSModel(firm_data, market_params, model_config)
+
+Run steps
+for _ in range(24):
+model.step()
+
+Access data
+agent_data = model.datacollector.get_agent_vars_dataframe()
+
+text
+
+---
+
+## Configuration
+
+Configuration is highly flexible:
+
+- Edit fallback/default parameters in `ccts/config.py`
+- Override parameters via JSON or CSV config files
+- Scenarios like `baseline`, `high_ambition`, `low_liquidity` come preloaded
+- Configure market parameters, agent behavior, sector benchmarks, compliance rates
+- Advanced toggles for learning, banking, borrowing, price caps, volatility, and penalties
+
+---
+
+## Outputs
+
+- **Agent and Model Time Series:** Detailed stepwise logged variables for analysis
+- **Transactions Logs:** Comprehensive carbon market transaction data
+- **Annual Summaries:** Yearly aggregated statistics on emissions, compliance, market volume
+- **Plots and Visuals:** Time series of carbon price, market liquidity, sector emissions trends, etc.
+- **Excel Reports:** Multi-sheet summaries for easy exploration of results
+
+---
+
+## Contributing
+
+Contributions are invited from researchers, policy analysts, and developers!
+
+- Fork the repository on GitHub
+- Create feature branches
+- Run tests before submitting pull requests
+- Report issues and suggest new features via GitHub Issues
+
+---
+
+## License
+
+This project is licensed under the **MIT License**.  
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Contact
+
+Developed and maintained by **Your Name**  
+Email: your.email@example.com  
+GitHub: [https://github.com/yourusername/ccts](https://github.com/yourusername/ccts)
+
+---
+
+## References & Resources
+
+- [Indian Carbon Credit Trading Scheme (CCTS)](https://icapcarbonaction.com/en/ets/indian-carbon-credit-trading-scheme)
+- [Mesa Agent-Based Modeling Framework](https://mesa.readthedocs.io/en/stable/)
+- [Python Scientific Stack](https://www.scipy.org/)
+- [Policy Documents and Regulatory Rules](https://moef.gov.in/)
+
+---
+
+**Empowering climate action in India through transparent, robust carbon market simulation.**

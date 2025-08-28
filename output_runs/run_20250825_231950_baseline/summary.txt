@@ -1,0 +1,45 @@
+============================================================
+CCTS SIMULATION ANALYSIS REPORT
+============================================================
+
+This simulation ran for 2 years. Final carbon price: ₹10287.22. Compliance rate: 34.1%. Total abatement: 878206.40 tCO₂e. Transactions: 11.
+
+SIMULATION OVERVIEW:
+- Years Completed: 2
+- Total Agents: 135
+- Covered Entities: 135
+- Final Carbon Price: ₹10287.22
+
+COMPLIANCE PERFORMANCE:
+- Overall Compliance Rate: 34.1%
+- Total Compliance Gap: 5437361.24 t
+- Actual vs Target Intensity Gap: 0.1014
+
+MARKET PERFORMANCE:
+- Total Trading Volume: 41425.01 credits
+- Total Transactions: 11
+- Average Trade Price: ₹9714.12
+- Price Volatility: 6.8%
+
+ABATEMENT EFFECTIVENESS:
+- Total Abatement: 878206.40 t
+- Participation Rate: 74.1%
+- Average per Firm: 6505.23 t
+
+ECONOMIC IMPACTS:
+- Total Profit: ₹1677510294.88
+- Firms with Positive Cash: 71.9%
+
+PER-SECTOR PERFORMANCE:
+Sector          Firms   Compliant(%)   Abatement(t)  Avg Profit(₹)
+------------------------------------------------------------------
+Aluminium          15           20.0       91948.00    11045712.39
+Cement             15           40.0       90635.85     9584065.43
+Chlor-Alkali       15           80.0      122225.90     7783023.66
+Fertilizer         15           60.0       67306.15     6114850.87
+Iron & Steel       15           26.7      106991.50    21070424.08
+Petrochemicals     15           73.3      130352.25     9256114.36
+Petroleum Refining    15           53.3      118744.25    15205082.22
+Power              15           53.3      134510.40    25889290.52
+Pulp & Paper       15           13.3       15492.10     5885456.12
+============================================================

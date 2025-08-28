@@ -1,0 +1,21 @@
+--- agent.py (original)+++ agent.py (fixed)@@ -530,16 +530,11 @@         try:
+             max_affordable_cash = max(0, self.cash - (self.cash * self.CASH_BUFFER_RATIO))
+ 
+-            # EFFECTIVE INTENSITY ASSUMPTION:
+-            # Abatement is tracked as annual tonnes avoided at baseline Q0.
+-            # We apply it via intensity:
+-            #   hat_iota = max(0, E0 - A_cum) / Q0  where E0 = Q0 * iota0
+-            # Step emissions then use  e_step = q_step * hat_iota.
+-            effective_intensity = safe_divide(
+-                max(0, self.baseline_emissions - self.abated_tonnes_cumulative),
+-                self.baseline_production,
+-                self.baseline_emissions_intensity
+-            )
++            # EFFECTIVE INTENSITY CALCULATION:
++            # Abatement reduces baseline intensity by: abated_tonnes / baseline_production
++            # This intensity reduction applies to any production level
++            # Current emissions = current_production * (baseline_intensity - intensity_reduction)
++
+ 
+             # Per-unit production cost should include full per-unit carbon cost
+             estimated_cost_per_unit = self.variable_production_cost + (effective_intensity * self.expected_price)

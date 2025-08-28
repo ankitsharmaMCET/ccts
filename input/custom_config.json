@@ -1,0 +1,8 @@
+{
+  "num_steps": 48,
+  "initial_carbon_price": 7500,
+  "penalty_rate": 30000,
+  "max_production_change": 0.3,
+  "banking_allowed": false,
+  "MarketStabilityReserve_participation": false
+}

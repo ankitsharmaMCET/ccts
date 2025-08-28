@@ -1,0 +1,2 @@
+[console_scripts]
+ccts-sim = ccts.run_simulation:main
